@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
 
   char *path = getenv("PATH");
 
-  const char *cmds[] = {"exit", "echo", "type"};
+  const char *cmds[] = {"exit", "echo", "type", "pwd"};
   size_t cmds_len = sizeof(cmds) / sizeof(cmds[0]);
 
   char *input = NULL;
@@ -86,6 +86,16 @@ int main(int argc, char *argv[]) {
         printf("%s: not found\n", rest);
       }
 
+    } else if (strcmp(cmd, "pwd") == 0) {
+
+      char *cwd = getcwd(NULL, 0);
+      if (!cwd) {
+        perror("getcwd");
+      }
+
+      printf("%s\n", cwd);
+
+	  free(cwd);
     } else if (path) {
       int flag = 0;
       char *copy_path = strdup(path);
@@ -134,7 +144,6 @@ int main(int argc, char *argv[]) {
       if (!flag) {
         printf("%s: command not found\n", input);
       }
-
     } else {
       printf("%s: command not found\n", input);
     }
