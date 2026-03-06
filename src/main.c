@@ -11,7 +11,7 @@ int main(int argc, char *argv[]) {
 
   char *path = getenv("PATH");
 
-  const char *cmds[] = {"exit", "echo", "type", "pwd"};
+  const char *cmds[] = {"exit", "echo", "type", "pwd", "cd"};
   size_t cmds_len = sizeof(cmds) / sizeof(cmds[0]);
 
   char *input = NULL;
@@ -95,7 +95,21 @@ int main(int argc, char *argv[]) {
 
       printf("%s\n", cwd);
 
-	  free(cwd);
+      free(cwd);
+    } else if (strcmp(cmd, "cd") == 0) {
+      char *copy = strdup(rest ? rest : "");
+
+      char *dir = strtok(copy, " ");
+
+      if (!dir || strcmp(dir, "~") == 0) {
+        dir = getenv("HOME");
+      }
+
+      if (chdir(dir) != 0) {
+        fprintf(stderr, "cd: %s: No such file or directory\n", dir);
+      }
+
+      free(copy);
     } else if (path) {
       int flag = 0;
       char *copy_path = strdup(path);
