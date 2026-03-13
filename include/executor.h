@@ -5,4 +5,4 @@
 
 void execute_command(command_t cmd);
 
-#endif // !EXEC_H
+#endif

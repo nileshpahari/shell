@@ -8,17 +8,32 @@ static void skip_spaces(char **p) {
     (*p)++;
 }
 
-static char *read_word(char **p) {
+static char *read_string(char **p) {
   char buffer[4096];
   size_t len = 0;
 
   while (**p && !isspace(**p) && **p != '|' && **p != '>' && **p != '<') {
-    if (**p == '\'' || **p == '"') {
+    // TODO: do more testing
+    if (len >= sizeof(buffer) - 1) {
+      break;
+    }
+    if (**p == '\\') {
+      (*p)++;
+      if (**p)
+        buffer[len++] = *(*p)++;
+    } else if (**p == '\'' || **p == '"') {
       char quote = **p;
       (*p)++;
 
-      while (**p && **p != quote)
-        buffer[len++] = *(*p)++;
+      while (**p && **p != quote) {
+        if (**p == '\\' && quote == '"') {
+          (*p)++;
+          if (**p)
+            buffer[len++] = *(*p)++;
+        } else {
+          buffer[len++] = *(*p)++;
+        }
+      }
 
       if (**p == quote)
         (*p)++;
@@ -30,31 +45,6 @@ static char *read_word(char **p) {
   buffer[len] = '\0';
   return strdup(buffer);
 }
-// static char *read_word(char **p) {
-//   char *start = *p;
-//
-//   while (**p && !isspace(**p) && **p != '|' && **p != '>' && **p != '<')
-//     (*p)++;
-//
-//   return strndup(start, *p - start);
-// }
-//
-// static char *read_string(char **p) {
-//   char quote = **p;
-//   (*p)++;
-//
-//   char *start = *p;
-//
-//   while (**p && **p != quote)
-//     (*p)++;
-//
-//   char *s = strndup(start, *p - start);
-//
-//   if (**p == quote)
-//     (*p)++;
-//
-//   return s;
-// }
 
 static void add_token(token_list *list, token_type type, char *value) {
   list->tokens = realloc(list->tokens, sizeof(token) * (list->count + 1));
@@ -89,12 +79,9 @@ token_list lex(char *input) {
     } else if (*p == '<') {
       add_token(&list, TOKEN_REDIRECT_IN, strdup("<"));
       p++;
-    // } else if (*p == '"' || *p == '\'') {
-    //   char *s = read_string(&p);
-    //   add_token(&list, TOKEN_STRING, s);
     } else {
-      char *w = read_word(&p);
-      add_token(&list, TOKEN_WORD, w);
+      char *w = read_string(&p);
+      add_token(&list, TOKEN_STRING, w);
     }
   }
 
@@ -111,3 +98,28 @@ void token_list_free(token_list list) {
   free(list.tokens);
 }
 
+// static char *read_word(char **p) {
+//   char *start = *p;
+//
+//   while (**p && !isspace(**p) && **p != '|' && **p != '>' && **p != '<')
+//     (*p)++;
+//
+//   return strndup(start, *p - start);
+// }
+//
+// static char *read_string(char **p) {
+//   char quote = **p;
+//   (*p)++;
+//
+//   char *start = *p;
+//
+//   while (**p && **p != quote)
+//     (*p)++;
+//
+//   char *s = strndup(start, *p - start);
+//
+//   if (**p == quote)
+//     (*p)++;
+//
+//   return s;
+// }

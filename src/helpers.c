@@ -1,34 +1,13 @@
-#include <ctype.h>
-#include <stdlib.h>
+#include <fcntl.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
 #include "../include/helpers.h"
-
-char *trim(char *s) {
-  char *start = s;
-  char *end = s;
-
-  while (*start && isspace((unsigned char)*start))
-    start++;
-
-  while (*start) {
-    *end++ = *start++;
-  }
-  *end = '\0';
-
-  end--;
-  while (end >= s && isspace((unsigned char)*end)) {
-    *end = '\0';
-    end--;
-  }
-
-  return s;
-}
+#include "../include/parser.h"
 
 char *find_in_path(const char *cmd) {
-
   if (!cmd)
     return NULL;
 
@@ -59,12 +38,35 @@ char *find_in_path(const char *cmd) {
   return NULL;
 }
 
-// int apply_redirection(command_t *cmd)
-// {
-//     if (!cmd->out_file)
-//         return -1;
-//
-//     int fd = open(cmd->out_file, O_WRONLY|O_CREAT|O_TRUNC, 0644);
-//     dup2(fd, STDOUT_FILENO);
-//     close(fd);
-// }
+int apply_redirection(command_t cmd) {
+  if (!cmd.redir_out)
+    return 0;
+
+  int fd = open(cmd.redir_out,
+                O_WRONLY | O_CREAT | (cmd.append ? O_APPEND : O_TRUNC), 0644);
+  if (fd == -1) {
+    perror("open");
+    return 0;
+  }
+
+  if (dup2(fd, cmd.redir_out_fd) == -1) {
+    perror("dup2");
+    close(fd);
+    return 0;
+  }
+
+  close(fd);
+  return 1;
+}
+
+int is_number(const char *s) {
+  if (!*s)
+    return 0;
+
+  while (*s) {
+    if (*s < '0' || *s > '9')
+      return 0;
+    s++;
+  }
+  return 1;
+}

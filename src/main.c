@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-int main(int argc, char *argv[]) {
+int main() {
   setbuf(stdout, NULL);
 
   char *input = NULL;
@@ -14,13 +14,20 @@ int main(int argc, char *argv[]) {
     printf("$ ");
 
     if (getline(&input, &len, stdin) == -1) {
+      printf("\n");
       break;
     }
 
     token_list list = lex(input);
     command_t cmd = parse(list);
 
-    if (!handle_builtin(cmd)) {
+    if (cmd.argc == 0) {
+      token_list_free(list);
+      command_free(cmd);
+      continue;
+    }
+
+    if (handle_builtin(cmd)) {
       token_list_free(list);
       command_free(cmd);
       continue;

@@ -4,7 +4,6 @@
 #include <stddef.h>
 
 typedef enum {
-  TOKEN_WORD,
   TOKEN_STRING,
   TOKEN_REDIRECT_OUT,
   TOKEN_REDIRECT_APPEND,

@@ -18,7 +18,7 @@ static void builtin_echo(command_t cmd) {
   printf("\n");
 }
 
-static void builitin_type(command_t cmd) {
+static void builtin_type(command_t cmd) {
 
   if (cmd.argc == 1) {
     printf("type: missing argument\n");
@@ -38,7 +38,7 @@ static void builitin_type(command_t cmd) {
       }
     }
 
-	char* resolved_path = NULL;
+    char *resolved_path = NULL;
 
     if (!flag && path) {
       resolved_path = find_in_path(curr);
@@ -72,7 +72,8 @@ static void builtin_pwd() {
 
 static void builtin_cd(command_t cmd) {
   if (cmd.argc > 2) {
-    fprintf(stderr, "cd: too many argument\n");
+    fprintf(stderr, "cd: too many arguments\n");
+    return;
   }
 
   char *dir = cmd.argv[1];
@@ -87,28 +88,45 @@ static void builtin_cd(command_t cmd) {
 }
 
 int handle_builtin(command_t cmd) {
-  if (strcmp(cmd.argv[0], "exit") == 0)
+  int saved = dup(STDOUT_FILENO);
+  if (saved == -1)
+    return 0;
+
+  int status = 0;
+
+  for (size_t i = 0; i < cmds_len; ++i) {
+    if (strcmp(cmds[i], cmd.argv[0]) == 0) {
+      status = 1;
+      break;
+    }
+  }
+
+  if (!status) {
+    dup2(saved, STDOUT_FILENO);
+    close(saved);
+    return 0;
+  }
+
+  if (apply_redirection(cmd) == -1) {
+    dup2(saved, STDOUT_FILENO);
+    close(saved);
+    return 1;
+  }
+
+  if (strcmp(cmd.argv[0], "exit") == 0) {
+    dup2(saved, STDOUT_FILENO);
+    close(saved);
     exit(0);
-
-  if (strcmp(cmd.argv[0], "echo") == 0) {
+  } else if (strcmp(cmd.argv[0], "echo") == 0)
     builtin_echo(cmd);
-    return 0;
-  }
-
-  if (strcmp(cmd.argv[0], "type") == 0) {
-    builitin_type(cmd);
-    return 0;
-  }
-
-  if (strcmp(cmd.argv[0], "pwd") == 0) {
+  else if (strcmp(cmd.argv[0], "type") == 0)
+    builtin_type(cmd);
+  else if (strcmp(cmd.argv[0], "pwd") == 0)
     builtin_pwd();
-    return 0;
-  }
-
-  if (strcmp(cmd.argv[0], "cd") == 0) {
+  else if (strcmp(cmd.argv[0], "cd") == 0)
     builtin_cd(cmd);
-    return 0;
-  }
 
+  dup2(saved, STDOUT_FILENO);
+  close(saved);
   return 1;
 }

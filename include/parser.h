@@ -8,6 +8,8 @@ typedef struct {
   char **argv;
   char *redir_in;
   char *redir_out;
+  int redir_in_fd;
+  int redir_out_fd;
   int append;
 } command_t;
 

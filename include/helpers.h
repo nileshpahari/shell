@@ -8,7 +8,8 @@
 
 char* find_in_path(const char* cmd);
 
-char *trim(char *s);
+int apply_redirection(command_t cmd);
 
+int is_number(const char* s);
 
 #endif  
