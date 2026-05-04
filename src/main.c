@@ -1,8 +1,25 @@
-#include "../include/builtins.h"
 #include "../include/executor.h"
 #include "../include/parser.h"
 #include <stdio.h>
 #include <stdlib.h>
+#include <unistd.h>
+
+#define PROMPT_COLOR "\x1b[1;32m"
+#define PROMPT_RESET "\x1b[0m"
+
+static void print_prompt(void) {
+  char *cwd = getcwd(NULL, 0);
+
+  if (cwd) {
+    printf("%s\n", cwd);
+    free(cwd);
+  } else {
+    perror("getcwd");
+  }
+
+  printf(PROMPT_COLOR ">" PROMPT_RESET " ");
+  fflush(stdout);
+}
 
 int main() {
   setbuf(stdout, NULL);
@@ -11,7 +28,7 @@ int main() {
   size_t len = 0;
 
   while (1) {
-    printf("$ ");
+    print_prompt();
 
     if (getline(&input, &len, stdin) == -1) {
       printf("\n");
@@ -19,24 +36,24 @@ int main() {
     }
 
     token_list list = lex(input);
-    command_t cmd = parse(list);
+    pipeline_t pipeline = parse(list);
 
-    if (cmd.argc == 0) {
+    if (!pipeline.valid) {
       token_list_free(list);
-      command_free(cmd);
+      pipeline_free(pipeline);
+      fprintf(stderr, "Syntax error: unexpected token\n");
       continue;
     }
 
-    if (handle_builtin(cmd)) {
+    if (pipeline.count == 0) {
       token_list_free(list);
-      command_free(cmd);
+      pipeline_free(pipeline);
       continue;
     }
 
-    execute_command(cmd);
-
+    execute(pipeline);
     token_list_free(list);
-    command_free(cmd);
+    pipeline_free(pipeline);
   }
 
   free(input);

@@ -13,8 +13,15 @@ typedef struct {
   int append;
 } command_t;
 
-command_t parse(token_list tokens);
+typedef struct {
+  command_t *commands;
+  size_t count;
+  int valid;
+} pipeline_t;
+
+pipeline_t parse(token_list tokens);
 
 void command_free(command_t cmd);
+void pipeline_free(pipeline_t pipeline);
 
 #endif

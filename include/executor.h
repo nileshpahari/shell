@@ -4,5 +4,6 @@
 #include "./parser.h"
 
 void execute_command(command_t cmd);
+void execute(pipeline_t pipeline);
 
 #endif

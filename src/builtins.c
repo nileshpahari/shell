@@ -7,7 +7,7 @@
 #include "../include/helpers.h"
 
 static const char *cmds[] = {"exit", "echo", "type", "pwd", "cd"};
-static const int cmds_len = 5;
+static const size_t cmds_len = 5;
 
 static void builtin_echo(command_t cmd) {
   for (size_t i = 1; i < cmd.argc; ++i) {
@@ -87,37 +87,46 @@ static void builtin_cd(command_t cmd) {
   }
 }
 
-int handle_builtin(command_t cmd) {
-  int saved = dup(STDOUT_FILENO);
-  if (saved == -1)
-    return 0;
-
-  int status = 0;
-
+int is_builtin(const char *name) {
   for (size_t i = 0; i < cmds_len; ++i) {
-    if (strcmp(cmds[i], cmd.argv[0]) == 0) {
-      status = 1;
-      break;
-    }
+    if (strcmp(cmds[i], name) == 0)
+      return 1;
   }
+  return 0;
+}
 
-  if (!status) {
-    dup2(saved, STDOUT_FILENO);
-    close(saved);
+// Directly run builtins (used during pipeline exec).
+void execute_builtin_in_child(command_t cmd) {
+  if (strcmp(cmd.argv[0], "exit") == 0)
+    exit(0);
+  else if (strcmp(cmd.argv[0], "echo") == 0)
+    builtin_echo(cmd);
+  else if (strcmp(cmd.argv[0], "type") == 0)
+    builtin_type(cmd);
+  else if (strcmp(cmd.argv[0], "pwd") == 0)
+    builtin_pwd();
+  else if (strcmp(cmd.argv[0], "cd") == 0)
+    builtin_cd(cmd);
+}
+
+int handle_builtin(command_t cmd) {
+  if (!is_builtin(cmd.argv[0]))
     return 0;
-  }
+
+  int saved_stdout = dup(STDOUT_FILENO);
+  int saved_stderr = dup(STDERR_FILENO);
 
   if (apply_redirection(cmd) == -1) {
-    dup2(saved, STDOUT_FILENO);
-    close(saved);
+    dup2(saved_stdout, STDOUT_FILENO);
+    dup2(saved_stderr, STDERR_FILENO);
+    close(saved_stdout);
+    close(saved_stderr);
     return 1;
   }
 
-  if (strcmp(cmd.argv[0], "exit") == 0) {
-    dup2(saved, STDOUT_FILENO);
-    close(saved);
+  if (strcmp(cmd.argv[0], "exit") == 0)
     exit(0);
-  } else if (strcmp(cmd.argv[0], "echo") == 0)
+  else if (strcmp(cmd.argv[0], "echo") == 0)
     builtin_echo(cmd);
   else if (strcmp(cmd.argv[0], "type") == 0)
     builtin_type(cmd);
@@ -126,7 +135,9 @@ int handle_builtin(command_t cmd) {
   else if (strcmp(cmd.argv[0], "cd") == 0)
     builtin_cd(cmd);
 
-  dup2(saved, STDOUT_FILENO);
-  close(saved);
+  dup2(saved_stdout, STDOUT_FILENO);
+  dup2(saved_stderr, STDERR_FILENO);
+  close(saved_stdout);
+  close(saved_stderr);
   return 1;
 }

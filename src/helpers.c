@@ -46,13 +46,13 @@ int apply_redirection(command_t cmd) {
                 O_WRONLY | O_CREAT | (cmd.append ? O_APPEND : O_TRUNC), 0644);
   if (fd == -1) {
     perror("open");
-    return 0;
+    return -1;
   }
 
   if (dup2(fd, cmd.redir_out_fd) == -1) {
     perror("dup2");
     close(fd);
-    return 0;
+    return -1;
   }
 
   close(fd);
