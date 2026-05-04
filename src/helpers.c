@@ -7,6 +7,27 @@
 #include "../include/helpers.h"
 #include "../include/parser.h"
 
+#define PROMPT_COLOR "\x1b[1;32m"
+#define PROMPT_RESET "\x1b[0m"
+
+void print_prompt(void) {
+  char cwd[4096];
+
+  if (!getcwd(cwd, sizeof(cwd))) {
+    perror("getcwd");
+  }
+
+  char *home = getenv("HOME");
+  if (home && strncmp(cwd, home, strlen(home)) == 0) {
+    printf("\n~%s\n", cwd + strlen(home));
+  } else {
+    printf("\n%s\n", cwd);
+  }
+
+  printf(PROMPT_COLOR ">" PROMPT_RESET " ");
+  fflush(stdout);
+}
+
 char *find_in_path(const char *cmd) {
   if (!cmd)
     return NULL;

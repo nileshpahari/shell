@@ -1,25 +1,10 @@
-#include "../include/executor.h"
-#include "../include/parser.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
 
-#define PROMPT_COLOR "\x1b[1;32m"
-#define PROMPT_RESET "\x1b[0m"
-
-static void print_prompt(void) {
-  char *cwd = getcwd(NULL, 0);
-
-  if (cwd) {
-    printf("%s\n", cwd);
-    free(cwd);
-  } else {
-    perror("getcwd");
-  }
-
-  printf(PROMPT_COLOR ">" PROMPT_RESET " ");
-  fflush(stdout);
-}
+#include "../include/executor.h"
+#include "../include/parser.h"
+#include "../include/helpers.h"
 
 int main() {
   setbuf(stdout, NULL);

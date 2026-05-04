@@ -6,10 +6,12 @@
 
 #define PATH_LIST_SEPARATOR ":"
 
-char* find_in_path(const char* cmd);
+void print_prompt(void);
+
+char *find_in_path(const char *cmd);
 
 int apply_redirection(command_t cmd);
 
-int is_number(const char* s);
+int is_number(const char *s);
 
-#endif  
+#endif
