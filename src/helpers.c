@@ -7,6 +7,7 @@
 #include "../include/helpers.h"
 #include "../include/parser.h"
 
+#define DIR_COLOR "\x1b[1;34m"
 #define PROMPT_COLOR "\x1b[1;32m"
 #define PROMPT_RESET "\x1b[0m"
 
@@ -19,9 +20,9 @@ void print_prompt(void) {
 
   char *home = getenv("HOME");
   if (home && strncmp(cwd, home, strlen(home)) == 0) {
-    printf("\n~%s\n", cwd + strlen(home));
+    printf("\n" DIR_COLOR "~%s" PROMPT_RESET "\n", cwd + strlen(home));
   } else {
-    printf("\n%s\n", cwd);
+    printf("\n" DIR_COLOR "%s" PROMPT_RESET "\n", cwd);
   }
 
   printf(PROMPT_COLOR ">" PROMPT_RESET " ");
