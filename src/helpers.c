@@ -11,22 +11,31 @@
 #define PROMPT_COLOR "\x1b[1;32m"
 #define PROMPT_RESET "\x1b[0m"
 
-void print_prompt(void) {
+char *build_prompt(void) {
   char cwd[4096];
 
   if (!getcwd(cwd, sizeof(cwd))) {
     perror("getcwd");
+    return strdup("> ");
   }
+
+  char prompt[8192];
 
   char *home = getenv("HOME");
+
   if (home && strncmp(cwd, home, strlen(home)) == 0) {
-    printf("\n" DIR_COLOR "~%s" PROMPT_RESET "\n", cwd + strlen(home));
+    snprintf(prompt, sizeof(prompt),
+             "\n" DIR_COLOR "~%s" PROMPT_RESET "\n"
+             PROMPT_COLOR ">" PROMPT_RESET " ",
+             cwd + strlen(home));
   } else {
-    printf("\n" DIR_COLOR "%s" PROMPT_RESET "\n", cwd);
+    snprintf(prompt, sizeof(prompt),
+             "\n" DIR_COLOR "%s" PROMPT_RESET "\n"
+             PROMPT_COLOR ">" PROMPT_RESET " ",
+             cwd);
   }
 
-  printf(PROMPT_COLOR ">" PROMPT_RESET " ");
-  fflush(stdout);
+  return strdup(prompt);
 }
 
 char *find_in_path(const char *cmd) {

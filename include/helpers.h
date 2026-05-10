@@ -6,7 +6,7 @@
 
 #define PATH_LIST_SEPARATOR ":"
 
-void print_prompt(void);
+char *build_prompt(void);
 
 char *find_in_path(const char *cmd);
 

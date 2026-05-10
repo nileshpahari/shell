@@ -1,10 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <readline/history.h>
+#include <readline/readline.h>
 
 #include "../include/executor.h"
-#include "../include/parser.h"
 #include "../include/helpers.h"
+#include "../include/parser.h"
 
 int main() {
   setbuf(stdout, NULL);
@@ -13,12 +15,19 @@ int main() {
   size_t len = 0;
 
   while (1) {
-    print_prompt();
+    char *input = readline(build_prompt());
 
-    if (getline(&input, &len, stdin) == -1) {
+    if (!input) {
       printf("\n");
       break;
     }
+
+    if (strlen(input) == 0) {
+      free(input);
+      continue;
+    }
+
+    add_history(input);
 
     token_list list = lex(input);
     pipeline_t pipeline = parse(list);
