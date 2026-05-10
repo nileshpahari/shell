@@ -14,4 +14,6 @@ int apply_redirection(command_t cmd);
 
 int is_number(const char *s);
 
+int is_all_spaces(const char *s);
+
 #endif

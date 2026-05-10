@@ -25,13 +25,13 @@ char *build_prompt(void) {
 
   if (home && strncmp(cwd, home, strlen(home)) == 0) {
     snprintf(prompt, sizeof(prompt),
-             "\n" DIR_COLOR "~%s" PROMPT_RESET "\n"
-             PROMPT_COLOR ">" PROMPT_RESET " ",
+             "\n" DIR_COLOR "~%s" PROMPT_RESET "\n" PROMPT_COLOR
+             ">" PROMPT_RESET " ",
              cwd + strlen(home));
   } else {
     snprintf(prompt, sizeof(prompt),
-             "\n" DIR_COLOR "%s" PROMPT_RESET "\n"
-             PROMPT_COLOR ">" PROMPT_RESET " ",
+             "\n" DIR_COLOR "%s" PROMPT_RESET "\n" PROMPT_COLOR ">" PROMPT_RESET
+             " ",
              cwd);
   }
 
@@ -100,4 +100,12 @@ int is_number(const char *s) {
     s++;
   }
   return 1;
+}
+
+int is_all_spaces(const char *s) {
+  while (*s) {
+    if (!isspace((unsigned char)*s))
+      return 0;
+    s++;
+  } return 1;
 }

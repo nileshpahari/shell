@@ -34,6 +34,9 @@ void execute_command(command_t cmd) {
 
 void execute(pipeline_t pipeline) {
   size_t n = pipeline.count;
+  if (n == 0) {
+	  return;
+  }
 
   if (n == 1) {
     command_t cmd = pipeline.commands[0];
