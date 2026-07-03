@@ -1,9 +1,9 @@
+#include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <readline/history.h>
-#include <readline/readline.h>
 
+#include "../include/editor.h"
 #include "../include/executor.h"
 #include "../include/helpers.h"
 #include "../include/parser.h"
@@ -12,10 +12,16 @@ int main() {
   setbuf(stdout, NULL);
 
   while (1) {
-    char *input = readline(build_prompt());
+    char *prompt = build_prompt();
+    char *input = editor_readline(prompt);
+    free(prompt);
 
     if (!input) {
-      printf("\n");
+      if (errno == EAGAIN) {
+        // Ctrl-C
+        continue;
+      }
+      // EOF (Ctrl-D)
       break;
     }
 
@@ -24,7 +30,7 @@ int main() {
       continue;
     }
 
-    add_history(input);
+    editor_history_add(input);
 
     token_list list = lex(input);
     pipeline_t pipeline = parse(list);
@@ -32,7 +38,7 @@ int main() {
     if (!pipeline.valid) {
       token_list_free(list);
       pipeline_free(pipeline);
-	  free(input);
+      free(input);
       fprintf(stderr, "Syntax error: unexpected token\n");
       continue;
     }
@@ -40,7 +46,7 @@ int main() {
     execute(pipeline);
     token_list_free(list);
     pipeline_free(pipeline);
-	free(input);
+    free(input);
   }
 
   return 0;

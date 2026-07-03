@@ -25,12 +25,12 @@ char *build_prompt(void) {
 
   if (home && strncmp(cwd, home, strlen(home)) == 0) {
     snprintf(prompt, sizeof(prompt),
-             "\n" DIR_COLOR "~%s" PROMPT_RESET "\n" PROMPT_COLOR
+             "\r\n" DIR_COLOR "~%s" PROMPT_RESET "\r\n" PROMPT_COLOR
              ">" PROMPT_RESET " ",
              cwd + strlen(home));
   } else {
     snprintf(prompt, sizeof(prompt),
-             "\n" DIR_COLOR "%s" PROMPT_RESET "\n" PROMPT_COLOR ">" PROMPT_RESET
+             "\r\n" DIR_COLOR "%s" PROMPT_RESET "\r\n" PROMPT_COLOR ">" PROMPT_RESET
              " ",
              cwd);
   }
