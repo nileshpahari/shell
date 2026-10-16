@@ -70,24 +70,43 @@ char *find_in_path(const char *cmd) {
 }
 
 int apply_redirection(command_t cmd) {
-  if (!cmd.redir_out)
-    return 0;
+  int redirected = 0;
 
-  int fd = open(cmd.redir_out,
-                O_WRONLY | O_CREAT | (cmd.append ? O_APPEND : O_TRUNC), 0644);
-  if (fd == -1) {
-    perror("open");
-    return -1;
-  }
+  if (cmd.redir_in) {
+    int fd = open(cmd.redir_in, O_RDONLY);
+    if (fd == -1) {
+      perror("open");
+      return -1;
+    }
 
-  if (dup2(fd, cmd.redir_out_fd) == -1) {
-    perror("dup2");
+    if (dup2(fd, cmd.redir_in_fd) == -1) {
+      perror("dup2");
+      close(fd);
+      return -1;
+    }
     close(fd);
-    return -1;
+    redirected = 1;
   }
 
-  close(fd);
-  return 1;
+  if (cmd.redir_out) {
+    int fd = open(cmd.redir_out,
+                  O_WRONLY | O_CREAT | (cmd.append ? O_APPEND : O_TRUNC),
+                  0644);
+    if (fd == -1) {
+      perror("open");
+      return -1;
+    }
+
+    if (dup2(fd, cmd.redir_out_fd) == -1) {
+      perror("dup2");
+      close(fd);
+      return -1;
+    }
+    close(fd);
+    redirected = 1;
+  }
+
+  return redirected;
 }
 
 int is_number(const char *s) {

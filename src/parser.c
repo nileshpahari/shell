@@ -50,7 +50,6 @@ static command_t parse_command(token_list list, size_t *pos) {
     }
   }
 
-  // skip the pipe token if present
   if (i < list.count && list.tokens[i].type == TOKEN_PIPE) {
     i++;
   }
@@ -65,8 +64,22 @@ static command_t parse_command(token_list list, size_t *pos) {
   return cmd;
 }
 
+static int redirections_are_valid(token_list list) {
+  for (size_t i = 0; i < list.count; i++) {
+    token_type type = list.tokens[i].type;
+    if (type != TOKEN_REDIRECT_IN && type != TOKEN_REDIRECT_OUT &&
+        type != TOKEN_REDIRECT_APPEND)
+      continue;
+
+    if (i + 1 >= list.count || list.tokens[i + 1].type != TOKEN_STRING)
+      return 0;
+  }
+  return 1;
+}
+
 pipeline_t parse(token_list list) {
-  if (list.count >= 2 && list.tokens[list.count - 2].type == TOKEN_PIPE) {
+  if (!redirections_are_valid(list) ||
+      (list.count >= 2 && list.tokens[list.count - 2].type == TOKEN_PIPE)) {
 	return (pipeline_t){.commands = NULL, .count = 0, .valid = 0};
   }
 

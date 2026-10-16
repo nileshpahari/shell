@@ -13,7 +13,6 @@ static char *read_string(char **p) {
   size_t len = 0;
 
   while (**p && !isspace(**p) && **p != '|' && **p != '>' && **p != '<') {
-    // TODO: do more testing
     if (len >= sizeof(buffer) - 1) {
       break;
     }
@@ -97,29 +96,3 @@ void token_list_free(token_list list) {
 
   free(list.tokens);
 }
-
-// static char *read_word(char **p) {
-//   char *start = *p;
-//
-//   while (**p && !isspace(**p) && **p != '|' && **p != '>' && **p != '<')
-//     (*p)++;
-//
-//   return strndup(start, *p - start);
-// }
-//
-// static char *read_string(char **p) {
-//   char quote = **p;
-//   (*p)++;
-//
-//   char *start = *p;
-//
-//   while (**p && **p != quote)
-//     (*p)++;
-//
-//   char *s = strndup(start, *p - start);
-//
-//   if (**p == quote)
-//     (*p)++;
-//
-//   return s;
-// }

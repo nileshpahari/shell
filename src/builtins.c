@@ -1,13 +1,14 @@
-#include "../include/parser.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
 
+#include "../include/parser.h"
 #include "../include/helpers.h"
 
 static const char *cmds[] = {"exit", "echo", "type", "pwd", "cd"};
 static const size_t cmds_len = 5;
+static int exit_requested = 0;
 
 static void builtin_echo(command_t cmd) {
   for (size_t i = 1; i < cmd.argc; ++i) {
@@ -95,7 +96,13 @@ int is_builtin(const char *name) {
   return 0;
 }
 
-// Directly run builtins (used during pipeline exec).
+const char **get_builtin_names(size_t *count) {
+  *count = cmds_len;
+  return cmds;
+}
+
+int builtin_exit_requested(void) { return exit_requested; }
+
 void execute_builtin_in_child(command_t cmd) {
   if (strcmp(cmd.argv[0], "exit") == 0)
     exit(0);
@@ -113,19 +120,22 @@ int handle_builtin(command_t cmd) {
   if (!is_builtin(cmd.argv[0]))
     return 0;
 
+  int saved_stdin = dup(STDIN_FILENO);
   int saved_stdout = dup(STDOUT_FILENO);
   int saved_stderr = dup(STDERR_FILENO);
 
   if (apply_redirection(cmd) == -1) {
+    dup2(saved_stdin, STDIN_FILENO);
     dup2(saved_stdout, STDOUT_FILENO);
     dup2(saved_stderr, STDERR_FILENO);
+    close(saved_stdin);
     close(saved_stdout);
     close(saved_stderr);
     return 1;
   }
 
   if (strcmp(cmd.argv[0], "exit") == 0)
-    exit(0);
+    exit_requested = 1;
   else if (strcmp(cmd.argv[0], "echo") == 0)
     builtin_echo(cmd);
   else if (strcmp(cmd.argv[0], "type") == 0)
@@ -135,8 +145,10 @@ int handle_builtin(command_t cmd) {
   else if (strcmp(cmd.argv[0], "cd") == 0)
     builtin_cd(cmd);
 
+  dup2(saved_stdin, STDIN_FILENO);
   dup2(saved_stdout, STDOUT_FILENO);
   dup2(saved_stderr, STDERR_FILENO);
+  close(saved_stdin);
   close(saved_stdout);
   close(saved_stderr);
   return 1;

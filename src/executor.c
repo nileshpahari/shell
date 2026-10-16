@@ -48,8 +48,6 @@ void execute(pipeline_t pipeline) {
     return;
   }
 
-  // Multiple commands: create n-1 pipes
-  // pipes[i] connects command i's stdout to command i+1's stdin
   int (*pipes)[2] = malloc((n - 1) * sizeof(int[2]));
   if (!pipes) {
     perror("malloc");
@@ -59,7 +57,6 @@ void execute(pipeline_t pipeline) {
   for (size_t i = 0; i < n - 1; ++i) {
     if (pipe(pipes[i]) == -1) {
       perror("pipe");
-      // Close any pipes already created
       for (size_t j = 0; j < i; ++j) {
         close(pipes[j][0]);
         close(pipes[j][1]);
@@ -91,37 +88,29 @@ void execute(pipeline_t pipeline) {
     }
 
     if (pid == 0) {
-      // Child process
-
-      // Wire stdin from previous pipe (unless first command)
       if (i > 0) {
         dup2(pipes[i - 1][0], STDIN_FILENO);
       }
 
-      // Wire stdout to next pipe (unless last command)
       if (i < n - 1) {
         dup2(pipes[i][1], STDOUT_FILENO);
       }
 
-      // Close all pipe fds in the child
       for (size_t j = 0; j < n - 1; ++j) {
         close(pipes[j][0]);
         close(pipes[j][1]);
       }
 
-      // Apply any per-command redirections (e.g. 2> file)
       if (apply_redirection(cmd) == -1) {
 		exit(1);
 	  }
 
-      // If it's a builtin, run it directly in this child
       if (cmd.argc > 0 && is_builtin(cmd.argv[0])) {
         execute_builtin_in_child(cmd);
         fflush(stdout);
         _exit(0);
       }
 
-      // External command
       if (cmd.argc > 0) {
         char *path = find_in_path(cmd.argv[0]);
         if (!path) {
@@ -139,13 +128,11 @@ void execute(pipeline_t pipeline) {
     pids[i] = pid;
   }
 
-  // Parent: close all pipe fds
   for (size_t i = 0; i < n - 1; ++i) {
     close(pipes[i][0]);
     close(pipes[i][1]);
   }
 
-  // Wait for all children
   for (size_t i = 0; i < n; ++i) {
     if (pids[i] > 0) {
       waitpid(pids[i], NULL, 0);

@@ -3,13 +3,23 @@
 #include <stdlib.h>
 #include <unistd.h>
 
+#include "../include/builtins.h"
 #include "../include/editor.h"
 #include "../include/executor.h"
 #include "../include/helpers.h"
 #include "../include/parser.h"
+#include "../include/completion.h"
+#include "../include/history.h"
+
 
 int main() {
   setbuf(stdout, NULL);
+
+  char *hist_path = get_history_path();
+  if (hist_path)
+    history_load(hist_path);
+
+  editor_set_completion_callback(completion);
 
   while (1) {
     char *prompt = build_prompt();
@@ -30,7 +40,7 @@ int main() {
       continue;
     }
 
-    editor_history_add(input);
+    history_add(input);
 
     token_list list = lex(input);
     pipeline_t pipeline = parse(list);
@@ -47,6 +57,14 @@ int main() {
     token_list_free(list);
     pipeline_free(pipeline);
     free(input);
+
+    if (builtin_exit_requested())
+      break;
+  }
+
+  if (hist_path) {
+    history_save(hist_path);
+    free(hist_path);
   }
 
   return 0;
