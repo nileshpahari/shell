@@ -6,6 +6,8 @@ A lightweight, interactive UNIX shell built from scratch in C. It handles the fu
 
 ## Key Features
 - **Interactive Line Editing** — A hand-written line editor providing interactive input handling, cursor movement, and history navigation without relying on external libraries like readline.
+- **Persistent History** — Saves up to 100 entered commands in `~/.shell_history` and restores them on the next launch. History is saved on EOF or the `exit` builtin.
+- **Tab Completion** — Completes built-in commands and executables from `$PATH` in the first word, and files from the current directory for later arguments. Press Tab repeatedly to cycle through matches.
 - **Pipeline Execution** — Forks child processes for each stage of a pipeline, wires them together with `pipe()` and `dup2()`, and waits for all children to complete.
 - **Built-in Commands** — Implements `cd`, `pwd`, `echo`, `type`, and `exit` as shell built-ins that run in the parent process (or in forked children when part of a pipeline).
 - **I/O Redirection** — Supports output redirection (`>`), append redirection (`>>`), input redirection (`<`), and file descriptor targeting (e.g., `2>` to redirect stderr).
