@@ -24,7 +24,7 @@ A lightweight, interactive UNIX shell built from scratch in C. It handles the fu
 ### Build Instructions
 1. Clone the repository:
    ```bash
-   git clone https://gihub.com/nileshpahari/shell
+   git clone https://github.com/nileshpahari/shell
    cd shell
    ```
 2. Build the project using the `Makefile`:
